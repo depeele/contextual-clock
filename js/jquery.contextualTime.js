@@ -35,10 +35,10 @@ $.ContextualTime.prototype = {
         offsetX:        55,
         offsetY:        0,
         centerX:        70,
-        centerY:        70,
+        centerY:        80,
         radius:         55,
   
-        scale:          0.9,
+        scale:          0.75,
 
         sun:    {
             src:        'images/sun.png',
@@ -201,9 +201,9 @@ $.ContextualTime.prototype = {
                         opts.canvasWidth, opts.canvasHeight);
          // */
 
-         ctx.translate(opts.offsetX + opts.centerX,
-                       opts.offsetY + opts.centerY);
+         ctx.translate(opts.offsetX, opts.offsetY);
          ctx.scale(opts.scale, opts.scale);
+         ctx.translate(opts.centerX, opts.centerY);
          
          // Hour marks/ticks
          ctx.save();
@@ -220,7 +220,7 @@ $.ContextualTime.prototype = {
 
          // Hour labels
          ctx.save();
-          ctx.fillStyle = 'rgba(255,255,255,1.0)';
+          ctx.fillStyle = 'rgba(255,255,255,0.8)';
           ctx.textAlign = 'center';
 
           for (var idex = 0; idex < 24; idex += 3)

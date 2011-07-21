@@ -35,7 +35,7 @@ $.ContextualDate.prototype = {
         centerX:        80,
         centerY:        80,
   
-        scale:          0.35,
+        scale:          0.4,
 
         sun:    {
             src:        'images/sun.png',
