@@ -93,7 +93,7 @@ $.ContextualClock.prototype = {
 
                 if (opts.test === true)
                 {
-                    //now.setDate( now.getDate() + 1 );
+                    now.setDate( now.getDate() + 1 );
                     //now.setHours( now.getHours() + 1 );
                     now.setMinutes( now.getMinutes() + 5 );
                 }

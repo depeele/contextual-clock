@@ -38,7 +38,7 @@ $.ContextualTime.prototype = {
         centerY:        70,
         radius:         55,
   
-        scale:          1.0,
+        scale:          0.9,
 
         sun:    {
             src:        'images/sun.png',
@@ -208,13 +208,47 @@ $.ContextualTime.prototype = {
          // Hour marks/ticks
          ctx.save();
           ctx.beginPath();
+          var styleLine = ctx.fillStyle;
+          var styleText = 'rgba(255,255,255,1.0)';
           for (var idex = 0; idex < 24; idex++)
           {
-             ctx.rotate(Math.PI/12);
-             ctx.moveTo( opts.radius - 1, 0);
-             ctx.lineTo( opts.radius + 1, 0);
+             ctx.save();
+              ctx.fillStyle = styleLine;
+              ctx.rotate( -((PI2 / 24) * idex) + Math.PI);
+              ctx.moveTo( opts.radius - 1, 0);
+              ctx.lineTo( opts.radius + 1, 0);
+
+              ctx.fillStyle = styleText;
+              ctx.fillText(idex, opts.radius + 6, 0);
+             ctx.restore();
           }
+          ctx.fillStyle = styleLine;
           ctx.stroke();
+         ctx.restore();
+
+         // Sunrise / Sunset -- lines
+         ctx.save();
+          var aRise = this.h2rad(rise);
+          var aSet  = this.h2rad(set);
+
+          ctx.moveTo(0,0);
+          ctx.lineTo( opts.radius * Math.cos( aRise ),
+                      opts.radius * Math.sin( -aRise ));
+          ctx.moveTo(0,0);
+          ctx.lineTo( opts.radius * Math.cos( aSet ),
+                      opts.radius * Math.sin( -aSet ));
+
+          ctx.stroke();
+         ctx.restore();
+
+         // Sunrise / Sunset -- nighttime
+         ctx.save();
+          ctx.fillStyle   = 'rgba(0,0,0,0.5)';
+          ctx.beginPath();
+          ctx.moveTo(0,0);
+          ctx.arc(0,0, opts.radius + 12, -aSet, -aRise, true);
+          ctx.closePath();
+          ctx.fill();
          ctx.restore();
 
          // Sun
@@ -227,6 +261,16 @@ $.ContextualTime.prototype = {
                           opts.sun.size,      opts.sun.size);
          ctx.restore();
 
+         // Sunrise / Sunset -- daytime
+         ctx.save();
+          ctx.fillStyle   = 'rgba(255,255,255,0.88)';
+          ctx.beginPath();
+          ctx.moveTo(0,0);
+          ctx.arc(0,0, opts.radius - 2, -aSet,  -aRise, false);
+          ctx.closePath();
+          ctx.fill();
+         ctx.restore();
+
          // Clock outline
          ctx.save();
           ctx.beginPath();
@@ -234,8 +278,9 @@ $.ContextualTime.prototype = {
                   0, Math.PI*2, false);
           ctx.stroke();
          ctx.restore();
+
         ctx.restore();
-      
+
         return this;
     }
 };
