@@ -208,22 +208,47 @@ $.ContextualTime.prototype = {
          // Hour marks/ticks
          ctx.save();
           ctx.beginPath();
-          var styleLine = ctx.fillStyle;
-          var styleText = 'rgba(255,255,255,1.0)';
+          ctx.rotate(-Math.PI);
           for (var idex = 0; idex < 24; idex++)
           {
-             ctx.save();
-              ctx.fillStyle = styleLine;
-              ctx.rotate( -((PI2 / 24) * idex) + Math.PI);
-              ctx.moveTo( opts.radius - 1, 0);
-              ctx.lineTo( opts.radius + 1, 0);
-
-              ctx.fillStyle = styleText;
-              ctx.fillText(idex, opts.radius + 6, 0);
-             ctx.restore();
+             ctx.rotate( PI2 / 24 );
+             ctx.moveTo( opts.radius - 1, 0);
+             ctx.lineTo( opts.radius + 1, 0);
           }
-          ctx.fillStyle = styleLine;
           ctx.stroke();
+         ctx.restore();
+
+         // Hour labels
+         ctx.save();
+          ctx.fillStyle = 'rgba(255,255,255,1.0)';
+          ctx.textAlign = 'center';
+
+          for (var idex = 0; idex < 24; idex += 3)
+          {
+              var aTime = this.h2rad(idex);
+              var str   = idex;
+              switch (idex)
+              {
+              case 0:
+                str = 'midnite';
+                break;
+
+              case 12:
+                str = 'noon';
+                break;
+
+              default:
+                str = (idex > 12
+                        ? (idex - 12)   // +'pm'
+                        : idex          //+'am'
+                );
+              }
+
+              ctx.fillText(str,
+                           (opts.radius + 12) * Math.cos(  aTime ),
+                           (opts.radius + 12) * Math.sin( -aTime ) + 5);
+
+          }
          ctx.restore();
 
          // Sunrise / Sunset -- lines
