@@ -1,0 +1,21 @@
+body {
+  position: relative;
+}
+#canvas {
+  width:  400px;
+  height: 200px;
+  /*background-color: #000;*/
+}
+#info {
+  position: relative;
+}
+#info .Date {
+  position: absolute;
+  top:      0;
+  left:     0;
+}
+#info .Time {
+  position: absolute;
+  top:      0;
+  left:     10em;
+}

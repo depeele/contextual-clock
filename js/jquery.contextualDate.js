@@ -28,23 +28,25 @@ $.ContextualDate.prototype = {
         canvas:         '#canvas',  // OR a DOM selector for the target canvas
 
 
-        canvasHeight:   150,
-        canvasWidth:    75,
-        centerX:        110,
-        centerY:        100,
+        canvasWidth:    80,
+        canvasHeight:   80,
+        offsetX:        0,
+        offsetY:        0,
+        centerX:        80,
+        centerY:        80,
   
-        scale:          0.75,
+        scale:          0.35,
 
         sun:    {
             src:        'images/sun.png',
-            offsetX:    120,
-            offsetY:    110,
-            size:       240
+            offsetX:    0,
+            offsetY:    6,
+            size:       90
         },
 
         earth:  {
             src:        'images/earth.png',
-            offset:     70,
+            offset:     50,
             size:       21,
   
             shadow:     38
@@ -52,7 +54,7 @@ $.ContextualDate.prototype = {
 
         moon:   {
             src:        'images/moon.png',
-            offset:     18,
+            offset:     15,
             size:       7
         },
 
@@ -71,8 +73,7 @@ $.ContextualDate.prototype = {
      */
     init: function(options) {
         this.options = $.extend(true, {}, this.options, options);
-
-        this.$info   = $('#info');  // Debug info
+        this.$info   = $('#info .Date');
 
         var opts    = this.options;
 
@@ -145,78 +146,84 @@ $.ContextualDate.prototype = {
                                 ? 28
                                 : 30));
         var ctx         = opts.ctx;
+
+        self.$info.html(  'year [ '+  year     +' ]<br />'
+                        + 'month[ '+ (month+1) +' ], '+ monthLen +' days<br />'
+                        + 'day  [ '+ (day+1)   +' ]<br />'
+                        + 'hour [ '+ hour      +' ]<br />'
+                        + 'min  [ '+ min       +' ]<br />'
+                        + 'sec  [ '+ sec       +' ]<br />');
+
   
         ctx.globalCompositeOperation = 'destination-over';
       
         // clear canvas
-        ctx.clearRect(0, 0, opts.canvasWidth * 2, opts.canvasHeight);
+        ctx.clearRect(opts.offsetX, opts.offsetY,
+                      opts.canvasWidth, opts.canvasHeight);
 
         ctx.save();
-        ctx.scale(opts.scale, opts.scale);
+         ctx.scale(opts.scale, opts.scale);
+         ctx.translate(opts.centerX, opts.centerY);
       
-        ctx.fillStyle   = 'rgba(0,0,0,0.4)';
-        ctx.strokeStyle = 'rgba(0,153,255,0.4)';
-        ctx.lineWidth   = 2;
-        ctx.save();
-        ctx.translate(opts.centerX, opts.centerY);
-      
-        self.$info.html(  'year [ '+  year     +' ]<br />'
-                        + 'month[ '+ (month+1) +' ]<br />'
-                        + 'day  [ '+ (day+1)   +' ]<br />'
-                        + 'hour [ '+ (hour+1)  +' ]<br />'
-                        + 'min  [ '+ (min+1)   +' ]<br />'
-                        + 'sec  [ '+ (sec+1)   +' ]<br />');
-
-        // Earth
-        var nDays = 365;
-        ctx.rotate( ((PI2 /             12  ) * month) + // months  / year
-                    ((PI2 /          nDays  ) * day)   + // days    / year
-                    ((PI2 / (   24 * nDays) ) * hour)  + // hours   / year
-                    ((PI2 / ( 1440 * nDays) ) * min)   + // minutes / year
-                    ((PI2 / (86400 * nDays) ) * sec)   - // seconds / year
-                    (Math.PI / 3) // Back it up to the clock-1 position
-        );
-        ctx.translate(opts.earth.offset, 0);
-      
-        // Earth shadow
-        ctx.fillRect(0, -(opts.earth.size / 2),
-                     opts.earth.shadow, opts.earth.size);
-      
-        ctx.drawImage(opts.earth.img,
-                        -(opts.earth.size / 2),
-                        -(opts.earth.size / 2),
-                        opts.earth.size, opts.earth.size);
-      
-        // Moon
-        ctx.save();
-        ctx.rotate( ((PI2/monthLen) * day) -
-                    Math.PI); // Back it up to the clock-12 position
-        ctx.translate(opts.moon.offset, 0);
-      
-        ctx.drawImage(opts.moon.img,
-                        -(opts.moon.size / 2),
-                        -(opts.moon.size / 2),
-                        opts.moon.size, opts.moon.size);
-        ctx.restore();
-        ctx.restore();
-        
-        // Earth orbit
-        ctx.beginPath();
-        ctx.arc(opts.centerX, opts.centerY,
-                opts.earth.offset,
-                0, Math.PI*2, false);
-        ctx.stroke();
+         ctx.fillStyle   = 'rgba(0,0,0,0.2)';
+         ctx.strokeStyle = 'rgba(0,153,255,0.4)';
+         ctx.lineWidth   = 5;
+         ctx.save();
        
-        // Sun
-        ctx.drawImage(opts.sun.img,
-                        opts.centerX - opts.sun.offsetX,
-                        opts.centerY - opts.sun.offsetY,
-                        opts.sun.size,   opts.sun.size);
+          // Earth
+          var nDays = 365;
+          ctx.rotate( ((PI2 /             12  ) * month) + // months  / year
+                      ((PI2 /          nDays  ) * day)   + // days    / year
+                      ((PI2 / (   24 * nDays) ) * hour)  + // hours   / year
+                      ((PI2 / ( 1440 * nDays) ) * min)   + // minutes / year
+                      ((PI2 / (86400 * nDays) ) * sec)   - // seconds / year
+                      (Math.PI / 3) // Back it up to the clock-1 position
+          );
+          ctx.translate(opts.earth.offset, 0);
+       
+          // Earth shadow
+          ctx.fillRect(0, -(opts.earth.size / 2),
+                       opts.earth.shadow, opts.earth.size);
+       
+          ctx.drawImage(opts.earth.img,
+                          -(opts.earth.size / 2),
+                          -(opts.earth.size / 2),
+                          opts.earth.size, opts.earth.size);
+       
+          // Moon
+          ctx.save();
+           nDays = monthLen;
+           ctx.rotate( ((PI2 /          nDays  ) * day)   + // days    / month
+                       ((PI2 / (   24 * nDays) ) * hour)  + // hours   / month
+                       ((PI2 / ( 1440 * nDays) ) * min)   + // minutes / month
+                       ((PI2 / (86400 * nDays) ) * sec)   - // seconds / month
+                       Math.PI  // Back it up to the clock-12 position
+           );
+
+           ctx.translate(opts.moon.offset, 0);
+       
+           ctx.drawImage(opts.moon.img,
+                           -(opts.moon.size / 2),
+                           -(opts.moon.size / 2),
+                           opts.moon.size, opts.moon.size);
+          ctx.restore();
+         ctx.restore();
+        
+         // Earth orbit
+         ctx.beginPath();
+         ctx.arc(0, 0, opts.earth.offset, 0, Math.PI*2, false);
+         ctx.stroke();
+       
+         // Sun
+         ctx.drawImage(opts.sun.img,
+                         opts.sun.offsetX - (opts.sun.size / 2),
+                         opts.sun.offsetY - (opts.sun.size / 2),
+                         opts.sun.size,   opts.sun.size);
       
-        /*
-        ctx.fillStyle   = 'rgba(0,0,0,1.0)';
-        ctx.fillRect(0, 0, opts.canvasWidth * 2, opts.canvasHeight);
-        // */
+         /*
+         ctx.fillStyle   = 'rgba(0,0,0,1.0)';
+         ctx.fillRect(0, 0, opts.canvasWidth, opts.canvasHeight);
+         // */
         ctx.restore();
       
         return this;
