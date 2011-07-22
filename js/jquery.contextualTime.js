@@ -30,19 +30,22 @@ $.ContextualTime.prototype = {
         ctx:            null,       // The 2d context of the target canvas
         canvas:         '#canvas',  // OR a DOM selector for the target canvas
 
-        canvasWidth:    140,
-        canvasHeight:   140,
-        offsetX:        55,
+        offsetX:        0,
         offsetY:        0,
-        centerX:        70,
-        centerY:        80,
-        radius:         55,
+
+        width:          170,
+        height:         170,
+
+        centerX:        85,
+        centerY:        70,
+
+        radius:         45,
   
-        scale:          0.75,
+        scale:          0.65,
 
         sun:    {
             src:        'images/sun.png',
-            size:       34
+            size:       40
         },
 
         /* If non-null, the number of milliseconds to use for an interval
@@ -121,12 +124,12 @@ $.ContextualTime.prototype = {
                + longitude.toPrecision(4) +"&deg; "+ longStr;
     },
 
-    setCoords: function( longitude, latitude ) {
+    setCoords: function( latitude, longitude) {
         var self        = this;
         var opts        = self.options;
 
-        opts.longitude = longitude;
         opts.latitude  = latitude;
+        opts.longitude = longitude;
 
         return this;
     },
@@ -186,42 +189,51 @@ $.ContextualTime.prototype = {
   
         ctx.globalCompositeOperation = 'destination-over';
       
-        // clear canvas
-        ctx.clearRect(opts.offsetX, opts.offsetY,
-                      opts.canvasWidth, opts.canvasHeight);
-        ctx.save();
-
-         ctx.fillStyle   = 'rgba(0,0,0,1.0)';
-         ctx.strokeStyle = 'rgba(0,153,255,0.5)';
-         ctx.lineWidth   = 4;
+        ctx.save(); // {
+         ctx.fillStyle   = 'rgba(0,0,0,0.5)';
+         ctx.strokeStyle = 'rgba(0,153,255,0.75)';
          ctx.lineCap     = 'round';
-
-         /*
-         ctx.strokeRect(opts.offsetX, opts.offsetY,
-                        opts.canvasWidth, opts.canvasHeight);
-         // */
+         ctx.lineWidth   = 3;
 
          ctx.translate(opts.offsetX, opts.offsetY);
          ctx.scale(opts.scale, opts.scale);
+
+          // clear canvas
+         ctx.clearRect(0, 0,
+                       opts.width, opts.height);
+
+         /* Highlight the drawing area
+         ctx.fillStyle = 'rgba(255,255,255,0.5)';
+         ctx.fillRect(0, 0,
+                      opts.width, opts.height);
+         // */
+
          ctx.translate(opts.centerX, opts.centerY);
          
          // Hour marks/ticks
-         ctx.save();
+         ctx.save();   // {
           ctx.beginPath();
-          ctx.rotate(-Math.PI);
+          //ctx.rotate(-(Math.PI / 2.4));
+          ctx.rotate( (PI2 / 24) + (PI2 / 4));
           for (var idex = 0; idex < 24; idex++)
           {
-             ctx.rotate( PI2 / 24 );
-             ctx.moveTo( opts.radius - 1, 0);
-             ctx.lineTo( opts.radius + 1, 0);
+             var size = ((idex % 3)
+                            ? 0.5   //(idex / 12) + 0.1
+                            : 3);   //((idex == 0) ? 5 : 1);
+
+             ctx.rotate( -(PI2 / 24) );
+             ctx.moveTo( opts.radius - size, 0);
+             ctx.lineTo( opts.radius + size, 0);
           }
           ctx.stroke();
-         ctx.restore();
+         ctx.restore();    // }
 
          // Hour labels
-         ctx.save();
-          ctx.fillStyle = 'rgba(255,255,255,0.8)';
+         ctx.save();   // {
+          ctx.fillStyle   = 'rgba(255,255,255,0.5)';
+          //ctx.fillStyle = 'rgba(0,153,255,0.8)';
           ctx.textAlign = 'center';
+          ctx.font = '13pt/15pt sans-serif';
 
           for (var idex = 0; idex < 24; idex += 3)
           {
@@ -238,24 +250,34 @@ $.ContextualTime.prototype = {
                 break;
 
               default:
-                str = (idex > 12
-                        ? (idex - 12)   // +'pm'
-                        : idex          //+'am'
-                );
+                var ap;
+                if (idex > 12)
+                {
+                    str = (idex - 12);
+                    ap  = 'p';
+                }
+                else
+                {
+                    str = idex;
+                    ap  = 'a';
+                }
+                if (str !== 6)
+                {
+                    str += ap;
+                }
               }
 
               ctx.fillText(str,
-                           (opts.radius + 12) * Math.cos(  aTime ),
-                           (opts.radius + 12) * Math.sin( -aTime ) + 5);
-
+                           (opts.radius + 20) * Math.cos(  aTime ),
+                           (opts.radius + 20) * Math.sin( -aTime ) + 10);
           }
-         ctx.restore();
+         ctx.restore();    // }
 
          // Sunrise / Sunset -- lines
-         ctx.save();
-          var aRise = this.h2rad(rise);
-          var aSet  = this.h2rad(set);
-
+         var aRise = this.h2rad(rise);
+         var aSet  = this.h2rad(set);
+         ctx.lineWidth   = 2;
+         ctx.save();   // {
           ctx.moveTo(0,0);
           ctx.lineTo( opts.radius * Math.cos( aRise ),
                       opts.radius * Math.sin( -aRise ));
@@ -264,47 +286,64 @@ $.ContextualTime.prototype = {
                       opts.radius * Math.sin( -aSet ));
 
           ctx.stroke();
-         ctx.restore();
+         ctx.restore();    // }
 
          // Sunrise / Sunset -- nighttime
-         ctx.save();
-          ctx.fillStyle   = 'rgba(0,0,0,0.5)';
+         ctx.save();   // {
           ctx.beginPath();
           ctx.moveTo(0,0);
-          ctx.arc(0,0, opts.radius + 12, -aSet, -aRise, true);
+          ctx.arc(0,0, opts.radius + (opts.sun.size / 2), -aSet, -aRise, true);
           ctx.closePath();
           ctx.fill();
-         ctx.restore();
+         ctx.restore();    // }
 
          // Sun
-         ctx.save();
+         ctx.save();   // {
           var a = this.h2rad(hourNow);
           ctx.translate( opts.radius * Math.cos( a ),
                          opts.radius * Math.sin( -a ));
           ctx.drawImage(opts.sun.img,
                         -(opts.sun.size/2), -(opts.sun.size/2),
                           opts.sun.size,      opts.sun.size);
-         ctx.restore();
+         ctx.restore();    // }
 
          // Sunrise / Sunset -- daytime
-         ctx.save();
-          ctx.fillStyle   = 'rgba(255,255,255,0.88)';
+         /*
+         ctx.save();   // {
           ctx.beginPath();
           ctx.moveTo(0,0);
-          ctx.arc(0,0, opts.radius - 2, -aSet,  -aRise, false);
+          ctx.arc(0,0, opts.radius / 2, -aSet,  -aRise, false);
           ctx.closePath();
-          ctx.fill();
-         ctx.restore();
+
+          if (false)    //daytimeSun !== undefined)
+          {
+              ctx.clip();
+              ctx.drawImage(opts.sun.img,
+                            -(opts.sun.size), -(opts.sun.size),
+                              opts.sun.size * 2,      opts.sun.size * 2);
+          }
+          else
+          {
+            ctx.fillStyle   = 'rgba(255,255,255,0.88)';
+            ctx.fill();
+          }
+         ctx.restore();    // }
+         // */
+
 
          // Clock outline
-         ctx.save();
+         ctx.save();   // {
           ctx.beginPath();
+
+          // Just the sunrise - sunset area
+          ctx.arc(0,0, opts.radius, -aSet,  -aRise, false);
+          /*
           ctx.arc(0, 0, opts.radius,
                   0, Math.PI*2, false);
+          // */
           ctx.stroke();
-         ctx.restore();
-
-        ctx.restore();
+         ctx.restore();    // }
+        ctx.restore();  // }
 
         return this;
     }

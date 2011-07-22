@@ -2,9 +2,11 @@ body {
   position: relative;
 }
 #canvas {
-  width:  400px;
-  height: 200px;
-  /*background-color: #000;*/
+  width:  220px;
+  height: 150px;
+  border: 4px solid #ccc;
+  padding:          0.5em;
+  background-color: #000;
 }
 #info {
   position: relative;

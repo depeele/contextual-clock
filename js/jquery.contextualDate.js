@@ -28,14 +28,16 @@ $.ContextualDate.prototype = {
         canvas:         '#canvas',  // OR a DOM selector for the target canvas
 
 
-        canvasWidth:    80,
-        canvasHeight:   80,
+        width:          140,
+        height:         140,
+
         offsetX:        0,
         offsetY:        0,
-        centerX:        80,
-        centerY:        80,
+
+        centerX:        70,
+        centerY:        70,
   
-        scale:          0.4,
+        scale:          0.50,
 
         sun:    {
             src:        'images/sun.png',
@@ -158,11 +160,19 @@ $.ContextualDate.prototype = {
         ctx.globalCompositeOperation = 'destination-over';
       
         // clear canvas
-        ctx.clearRect(opts.offsetX, opts.offsetY,
-                      opts.canvasWidth, opts.canvasHeight);
 
         ctx.save();
+         ctx.translate(opts.offsetX, opts.offsetY);
          ctx.scale(opts.scale, opts.scale);
+         ctx.clearRect(0, 0,
+                      opts.width, opts.height);
+
+         /* Highlight the drawing area
+         ctx.fillStyle = 'rgba(255,255,255,0.5)';
+         ctx.fillRect(0, 0,
+                      opts.width, opts.height);
+         // */
+
          ctx.translate(opts.centerX, opts.centerY);
       
          ctx.fillStyle   = 'rgba(0,0,0,0.2)';
@@ -222,7 +232,7 @@ $.ContextualDate.prototype = {
       
          /*
          ctx.fillStyle   = 'rgba(0,0,0,1.0)';
-         ctx.fillRect(0, 0, opts.canvasWidth, opts.canvasHeight);
+         ctx.fillRect(0, 0, opts.width, opts.height);
          // */
         ctx.restore();
       

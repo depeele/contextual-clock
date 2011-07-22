@@ -24,8 +24,8 @@
     {
         var clock   = $('#canvas').data('contextualClock');
 
-        clock.setCoords(position.coords.longitude,
-                        position.coords.latitude);
+        clock.setCoords(position.coords.latitude,
+                        position.coords.longitude);
 
         $('#status').addClass('success')
                     .html( clock.geoStr() );
