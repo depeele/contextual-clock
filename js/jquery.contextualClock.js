@@ -25,6 +25,7 @@ $.ContextualClock.prototype = {
         latitude:       null,   //38.9278,
         longitude:      null,   //-77.0136,
         location:       null,
+        locationStr:    null,
         /*
         location:       [
             {},
@@ -125,7 +126,7 @@ $.ContextualClock.prototype = {
 
         if (opts.latitude !== null)
         {
-            self.setCoords(opts.latitude, opts.longitude);
+            this.setCoords(opts.latitude, opts.longitude);
         }
 
         return this;
@@ -135,6 +136,10 @@ $.ContextualClock.prototype = {
         return this.time.geoStr();
     },
 
+    /** @brief  Establish the latitude and longitude.
+     *  @param  latitude    The latitude;
+     *  @param  longitude   The longtitude;
+     */
     setCoords: function( latitude, longitude ) {
         var self    = this;
         var opts    = self.options;
@@ -155,8 +160,7 @@ $.ContextualClock.prototype = {
                                 {
                                     return;
                                 }
-
-                                opts.location = results;
+                                self.setLocation(results);
                     });
             };
 
@@ -171,6 +175,50 @@ $.ContextualClock.prototype = {
 
 
         return this;
+    },
+
+    /** @brief  Set the location from the google maps API.
+     *  @param  location    The google maps API location result.
+     *
+     */
+    setLocation: function( location ) {
+        var self    = this;
+        var opts    = self.options;
+
+        opts.location = location;
+
+        /* Look through the incoming location data for those that have
+         * a type of:
+         *      'locality'  - city/state
+         *
+         * From this, pull the address components:
+         *      'locality'                      - city
+         *      'administrative_area_level_1'   - state
+         */
+        $.each(opts.location, function() {
+            var addr       = this;
+            var addrAr     = [];
+            if (addr.types[0] !== 'locality') { return; }
+
+            $.each(addr.address_components, function() {
+                switch (this.types[0])
+                {
+                case 'locality':
+                case 'administrative_area_level_1':
+                    if (this.short_name !== 'DC')
+                    {
+                        addrAr.push(this.short_name);
+                    }
+                    break; 
+                }
+            });
+
+            if (addrAr.length > 0)
+            {
+                opts.locationStr = addrAr.join(', ');
+                return false;
+            }
+        });
     },
 
     /** @brief  Left pad the provided string to the specified number of
@@ -261,29 +309,12 @@ $.ContextualClock.prototype = {
         ctx.restore();  // }
 
         // Render any location information
-        if (opts.location !== null)
+        if (opts.locationStr !== null)
         {
-            // 0: address
-            // 1: locality
-            var addr       = opts.location[1];
-            var addrAr     = [];
-            $.each(addr.address_components, function() {
-               switch (this.types[0])
-               {
-               case 'locality':
-               case 'administrative_area_level_1':
-                   if (this.short_name !== 'DC')
-                   {
-                       addrAr.push(this.short_name);
-                   }
-                   break; 
-               }
-            });
-
             ctx.save();    // {
              ctx.translate(0, dOpts.height * dOpts.scale + y);
 
-             str           = addrAr.join(', ');
+             str           = opts.locationStr;
              ctx.font      = '8pt/10pt sans-serif';
              ctx.textAlign = 'center';
              dim2          = ctx.measureText(str);
