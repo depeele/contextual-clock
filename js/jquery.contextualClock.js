@@ -132,6 +132,10 @@ $.ContextualClock.prototype = {
         return this;
     },
 
+    /** @brief  Generate a string representing the latitude/longitued.
+     *
+     *  @return The string.
+     */
     geoStr: function() {
         return this.time.geoStr();
     },
@@ -244,6 +248,155 @@ $.ContextualClock.prototype = {
         return str;
     },
 
+    /** @brief  Render the textual date.
+     *  @param  now     The Date instance to render.
+     *  @param  fontSize    The font size for Date (integer, in pixels).
+     *                      The month will be .3 of this;
+     *
+     *  @return this for a fluent interface.
+     */
+    renderDate: function( now, fontSize ) {
+        var self    = this;
+        var opts    = self.options;
+        var ctx     = opts.ctx;
+
+        ctx.save(); // {
+         ctx.textAlign = 'left';
+
+         // Render the date
+         var str    = now.getFullYear();
+         ctx.font   = 'bold '+ fontSize +'px sans-serif';
+         self.dim.year = ctx.measureText(str);
+
+         /* Clear the textual area (include additional vertical space in order
+          * to clear the 1's digit of the time).
+          */
+         ctx.clearRect(0, 0, self.dim.year.width + 15, fontSize*2 + 2);
+
+         /* Highlight the drawing area
+         ctx.fillStyle = 'rgba(255,255,255,0.5)';
+         ctx.fillRect(0, 0,  self.dim.year.width + 15, fontSize*2 + 2);
+         // */
+
+         // Draw the year
+         ctx.fillStyle = 'rgba(255,255,255,0.25)';
+         ctx.fillText(str, 0, fontSize);
+
+         // Draw the month
+         var mFont  = Math.floor(fontSize * .3);
+
+         ctx.fillStyle = 'rgba(255,255,255,0.8)';
+         ctx.font      = 'bold '+ mFont +'px sans-serif';
+         ctx.textAlign = 'center';
+         str = opts.months[ now.getMonth() ] +' '+ now.getDate();
+         self.dim.month = ctx.measureText(str);
+
+         ctx.fillText( str,
+                       (self.dim.year.width / 2),
+                       fontSize - ((fontSize / 2) + (mFont / 2)),
+                       self.dim.year.width);
+        ctx.restore();  // }
+    },
+
+    /** @brief  Render the textual location.
+     *  @param  fontSize    The font size (integer, in pixels).
+     *
+     *  @return this for a fluent interface.
+     */
+    renderLocation: function( fontSize ) {
+        var self    = this;
+        var opts    = self.options;
+        var ctx     = opts.ctx;
+
+        if (opts.locationStr === null)
+        {
+            return;
+        }
+
+        ctx.save();    // {
+         // Render the location
+         var str    = opts.locationStr;
+
+         ctx.font          = fontSize +'px sans-serif';
+         ctx.textAlign     = 'center';
+         self.dim.location = ctx.measureText(str);
+
+         // Clear the textual area
+         ctx.clearRect(0, 0, self.dim.year.width, fontSize + 2);
+
+         /* Highlight the drawing area
+         ctx.fillStyle = 'rgba(255,255,255,0.5)';
+         ctx.fillRect(0, 0,  self.dim.year.width, fontSize + 2);
+         // */
+
+         ctx.fillStyle = 'rgba(255,255,255,0.4)';
+         ctx.fillText( str, (self.dim.year.width / 2), fontSize);
+
+        ctx.restore(); // }
+    },
+
+    /** @brief  Render the textual time.
+     *  @param  now     The Date instance to render.
+     *  @param  x       The x offset;
+     *  @param  y       The y offset;
+     *
+     *  @return this for a fluent interface.
+     */
+    renderTime: function( now, fontSize ) {
+        var self    = this;
+        var opts    = self.options;
+        var ctx     = opts.ctx;
+
+        ctx.save(); // {
+         // Render the time
+         var hour   = now.getHours();
+         var ap     = 'am';
+         var apFont = Math.floor(fontSize * .25);
+
+         if (hour >= 12)        { ap = 'pm'; hour -= (hour === 12 ? 0 : 12); }
+         else if (hour === 0)   { hour = 12; }
+         
+         var str = self.padString(hour, 2, ' ')
+                 +      ':'+ self.padString(now.getMinutes());
+
+         ctx.font      = 'bold '+ fontSize +'px sans-serif';
+         ctx.textAlign = 'right';
+         self.dim.time = ctx.measureText(str);
+
+         /* Clear the textual area (slightly offset so we don't clear the year)
+          * AND clear the am/pm area
+          */
+         ctx.clearRect(15, -apFont,
+                       self.dim.time.width + (apFont*2),
+                       fontSize + 10);
+
+         /* Highlight the drawing area
+         ctx.fillStyle = 'rgba(255,255,255,0.5)';
+         ctx.fillRect(15, -apFont,
+                       self.dim.time.width + (apFont*2),
+                       fontSize + 10);
+         // */
+
+         ctx.fillStyle = 'rgba(255,255,255,0.8)';
+         ctx.fillText( str, self.dim.time.width, (fontSize / 2) );
+
+         ctx.font      = 'bold '+ apFont +'px sans-serif';
+         ctx.textAlign = 'left';
+         ctx.fillStyle = 'rgba(255,255,255,0.5)';
+
+         self.dim.ap   = ctx.measureText(ap);
+
+         ctx.fillText( ap,
+                       self.dim.time.width - 3,
+                       (fontSize / 2) + (apFont / 2));
+                        /*
+                       self.dim.time.width + 2,
+                       fontSize - (apFont / 2));
+                        // */
+
+        ctx.restore();  // }
+    },
+
     /** @brief given a Date instance, render this MonthDate clock
      *  @param  now     The Date instance to render.
      *
@@ -257,14 +410,22 @@ $.ContextualClock.prototype = {
         var tOpts   = this.time.options;
         var height  = opts.canvas[0].height;    //opts.canvas.height();
         var width   = opts.canvas[0].width;     //opts.canvas.width();
+        var x       = 5;
+        var yFont   = 42;
+        var lFont   = 11;
+        var tFont   = 48;
 
-        // Render the contextual date/time
+        // Initialize the dimensions object
+        self.dim = {};
+
+        // Render the contextual date
         ctx.globalAlpha = 0.9;
         ctx.save(); // {
          ctx.translate(20, 2);
          this.date.render( now );
         ctx.restore();  // }
 
+        // Render the contextual time
         ctx.save(); // {
          ctx.translate( -(tOpts.radius * tOpts.scale), 0);
          this.time.render( now );
@@ -272,125 +433,28 @@ $.ContextualClock.prototype = {
 
         ctx.globalAlpha = 1.0;
 
-        // Render the textual date/time information (foreground)
+        // Render the textual date
         ctx.save(); // {
-         ctx.translate(0, dOpts.height * dOpts.scale);
-         ctx.textAlign = 'left';
+         ctx.translate(5, (dOpts.height * dOpts.scale) );
 
-         // Render the date
-         var str    = now.getFullYear();
-         var x      = 5;
-         var y      = 42;
-         var dim;
-
-         ctx.font   = 'bold 32pt/34pt sans-serif';
-         dim1       = ctx.measureText(str);
-
-         /* Clear the textual area (include additional vertical space in order
-          * to clear the 1's digit of the time).
-          */
-         ctx.clearRect(0, 0, dim1.width + x, y*2 + 2);
-
-         /* Highlight the drawing area
-         ctx.fillStyle = 'rgba(255,255,255,0.5)';
-         ctx.fillRect(0, 0,  dim1.width + x, y*2 + 2);
-         // */
-
-         ctx.fillStyle = 'rgba(255,255,255,0.2)';
-         ctx.fillText(str, x, y);
-
-         ctx.fillStyle = 'rgba(255,255,255,0.8)';
-         ctx.font      = 'bold 10pt/12pt sans-serif';
-         ctx.textAlign = 'center';
-         str = opts.months[ now.getMonth() ] +' '+ now.getDate();
-         var dim2   = ctx.measureText(str);
-
-         ctx.fillText( str, x + (dim1.width / 2), y - 28, dim1.width);
+         self.renderDate( now, yFont );
         ctx.restore();  // }
 
-        // Render any location information
-        if (opts.locationStr !== null)
-        {
-            ctx.save();    // {
-             ctx.translate(0, dOpts.height * dOpts.scale + y);
+        // Render the textual location
+        ctx.save();    // {
+         ctx.translate(0, (dOpts.height * dOpts.scale) + (yFont * 1.5));
 
-             str           = opts.locationStr;
-             ctx.font      = '8pt/10pt sans-serif';
-             ctx.textAlign = 'center';
-             dim2          = ctx.measureText(str);
+         self.renderLocation( lFont );
+        ctx.restore(); // }
 
-             // Clear the textual area
-             ctx.clearRect(0, 0, dim1.width + x, y + 2);
-
-             /* Highlight the drawing area
-             ctx.fillStyle = 'rgba(255,255,255,0.5)';
-             ctx.fillRect(0, 0,  dim1.width + x, y + 2);
-             // */
-
-             ctx.fillStyle = 'rgba(255,255,255,0.4)';
-             ctx.fillText( str, x + (dim1.width / 2), y - 8);
-
-            ctx.restore(); // }
-        }
-
-        // Render the textual date/time information (foreground)
+        // Render the textual time
         ctx.save(); // {
-         ctx.translate(tOpts.width * tOpts.scale - 25,
-                       tOpts.height * tOpts.scale - 2);
+         ctx.translate(self.dim.year.width - 10,
+                       (tOpts.height * tOpts.scale) + 7);
 
-         // Render the time
-         var hour   = now.getHours();
-         var ap     = 'am';
-         x = dim1.width + 25;
-         y = 30;
-         if (hour >= 12)        { ap = 'pm'; hour -= (hour === 12 ? 0 : 12); }
-         else if (hour === 0)   { hour = 12; }
-         
-         str = self.padString(hour, 2, ' ')
-             +      ':'+ self.padString(now.getMinutes());
-         ctx.font      = 'bold 36pt/38pt sans-serif';
-         ctx.textAlign = 'right';
-         dim2 = ctx.measureText(str);
-
-         /* Clear the textual area (slightly offset so we don't clear the year)
-          * AND clear the am/pm area
-          */
-         ctx.clearRect(15, 0, x, y + 10);
-
-         /* Highlight the drawing area
-         ctx.fillStyle = 'rgba(255,255,255,0.5)';
-         ctx.fillRect(15, 0,  x, y + 10);
-         // */
-
-         ctx.fillStyle = 'rgba(255,255,255,0.8)';
-         ctx.fillText( str, x, y );
-
-         y += 7;
-         x -= 7;
-         ctx.font      = 'bold 8pt/10pt sans-serif';
-         ctx.textAlign = 'left';
-         ctx.fillStyle = 'rgba(255,255,255,0.5)';
-         ctx.fillText( ap, x, y );
-
+         self.renderTime( now, tFont );
         ctx.restore();  // }
 
-        // Perform the final fill (background)
-        /*
-        ctx.save(); // {
-         ctx.strokeStyle = 'rgba(0,153,255,0.4)';
-         ctx.lineWidth   = 5;
-
-         ctx.fillRect(2, 2,
-                      tOpts.offsetX + tOpts.width - 2,
-                      tOpts.offsetY + tOpts.height - 2);
-
-         ctx.strokeRect(0, 0,
-                        tOpts.offsetX + tOpts.width,
-                        tOpts.offsetY + tOpts.height);
-
-        ctx.restore();  // }
-        // */
-      
         return this;
     }
 };
