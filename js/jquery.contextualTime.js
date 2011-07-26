@@ -159,6 +159,7 @@ $.ContextualTime.prototype = {
                                             opts.longitude);
         var rise        = srss.sunriseLocalHours(offset);
         var set         = srss.sunsetLocalHours(offset);
+        var idex;
 
         if (hourNow > set)
         {
@@ -209,7 +210,7 @@ $.ContextualTime.prototype = {
           ctx.beginPath();
           //ctx.rotate(-(Math.PI / 2.4));
           ctx.rotate( (PI2 / 24) + (PI2 / 4));
-          for (var idex = 0; idex < 24; idex++)
+          for (idex = 0; idex < 24; idex++)
           {
              var size = ((idex % 3)
                             ? 0.5   //(idex / 12) + 0.1
@@ -229,7 +230,7 @@ $.ContextualTime.prototype = {
           ctx.textAlign = 'center';
           ctx.font = 'bold 17px sans-serif';
 
-          for (var idex = 0; idex < 24; idex += 3)
+          for (idex = 0; idex < 24; idex += 3)
           {
               var aTime = this.h2rad(idex);
               var str   = idex;

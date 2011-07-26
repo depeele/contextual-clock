@@ -281,7 +281,7 @@ $.ContextualClock.prototype = {
          ctx.fillText(str, 0, fontSize);
 
          // Draw the month
-         var mFont  = Math.floor(fontSize * .3);
+         var mFont  = Math.floor(fontSize * 0.3);
 
          ctx.fillStyle = 'rgba(255,255,255,0.8)';
          ctx.font      = 'bold '+ mFont +'px sans-serif';
@@ -351,7 +351,7 @@ $.ContextualClock.prototype = {
          // Render the time
          var hour   = now.getHours();
          var ap     = 'am';
-         var apFont = Math.floor(fontSize * .25);
+         var apFont = Math.floor(fontSize * 0.25);
 
          if (hour >= 12)        { ap = 'pm'; hour -= (hour === 12 ? 0 : 12); }
          else if (hour === 0)   { hour = 12; }
@@ -378,7 +378,7 @@ $.ContextualClock.prototype = {
 
          ctx.fillStyle = 'rgba(255,255,255,0.8)';
          ctx.textAlign = 'right';
-         ctx.fillText( str, self.dim.year.width + 35, (fontSize * .75) );
+         ctx.fillText( str, self.dim.year.width + 35, (fontSize * 0.75) );
 
          ctx.font      = 'bold '+ apFont +'px sans-serif';
          ctx.fillStyle = 'rgba(255,255,255,0.5)';
@@ -387,7 +387,7 @@ $.ContextualClock.prototype = {
 
          ctx.fillText( ap,
                        self.dim.year.width + 40,
-                       (fontSize * .75) + (apFont * .75) + 2);
+                       (fontSize * 0.75) + (apFont * 0.75) + 2);
                         /*
                        self.dim.time.width + 2,
                        fontSize - (apFont / 2));
@@ -444,7 +444,7 @@ $.ContextualClock.prototype = {
         // Render the textual time
         ctx.save(); // {
          ctx.globalAlpha = 1.0;
-         ctx.translate(self.dim.year.width - 2, 0); //(tFont * .25));
+         ctx.translate(self.dim.year.width - 4, 0); //(tFont * .25));
 
          self.renderTime( now, tFont );
 
