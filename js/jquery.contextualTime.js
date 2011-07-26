@@ -30,19 +30,14 @@ $.ContextualTime.prototype = {
         ctx:            null,       // The 2d context of the target canvas
         canvas:         '#canvas',  // OR a DOM selector for the target canvas
 
-        offsetX:        0,
-        offsetY:        0,
+        width:          150,
+        height:         150,
 
-        width:          170,
-        height:         170,
-
-        centerX:        85,
+        centerX:        75,
         centerY:        70,
 
         radius:         45,
   
-        scale:          0.65,
-
         sun:    {
             src:        'images/sun.png',
             size:       40
@@ -195,12 +190,11 @@ $.ContextualTime.prototype = {
          ctx.lineCap     = 'round';
          ctx.lineWidth   = 3;
 
-         ctx.translate(opts.offsetX, opts.offsetY);
-         ctx.scale(opts.scale, opts.scale);
-
           // clear canvas
+         /*
          ctx.clearRect(0, 0,
                        opts.width, opts.height);
+         // */
 
          /* Highlight the drawing area
          ctx.fillStyle = 'rgba(255,255,255,0.5)';
@@ -233,7 +227,7 @@ $.ContextualTime.prototype = {
           ctx.fillStyle   = 'rgba(255,255,255,0.5)';
           //ctx.fillStyle = 'rgba(0,153,255,0.8)';
           ctx.textAlign = 'center';
-          ctx.font = '13pt/15pt sans-serif';
+          ctx.font = 'bold 17px sans-serif';
 
           for (var idex = 0; idex < 24; idex += 3)
           {

@@ -27,18 +27,12 @@ $.ContextualDate.prototype = {
         ctx:            null,       // The 2d context of the target canvas
         canvas:         '#canvas',  // OR a DOM selector for the target canvas
 
-
         width:          140,
         height:         140,
-
-        offsetX:        0,
-        offsetY:        0,
 
         centerX:        70,
         centerY:        70,
   
-        scale:          0.50,
-
         sun:    {
             src:        'images/sun.png',
             offsetX:    0,
@@ -162,10 +156,10 @@ $.ContextualDate.prototype = {
         // clear canvas
 
         ctx.save();
-         ctx.translate(opts.offsetX, opts.offsetY);
-         ctx.scale(opts.scale, opts.scale);
+         /*
          ctx.clearRect(0, 0,
                       opts.width, opts.height);
+         // */
 
          /* Highlight the drawing area
          ctx.fillStyle = 'rgba(255,255,255,0.5)';

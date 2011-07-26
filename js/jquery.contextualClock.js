@@ -84,9 +84,7 @@ $.ContextualClock.prototype = {
         /* Offset the contextualTime widget by the full width of the
          * contextualTime widget.
          */
-        this.$time  = opts.canvas.contextualTime({
-                        offsetX:    (dOpts.width * dOpts.scale * 2)
-                      });
+        this.$time  = opts.canvas.contextualTime();
         this.time   = opts.canvas.data('contextualTime');
 
         if (opts.interval > 0)
@@ -270,8 +268,8 @@ $.ContextualClock.prototype = {
 
          /* Clear the textual area (include additional vertical space in order
           * to clear the 1's digit of the time).
-          */
          ctx.clearRect(0, 0, self.dim.year.width + 15, fontSize*2 + 2);
+          */
 
          /* Highlight the drawing area
          ctx.fillStyle = 'rgba(255,255,255,0.5)';
@@ -317,12 +315,13 @@ $.ContextualClock.prototype = {
          // Render the location
          var str    = opts.locationStr;
 
-         ctx.font          = fontSize +'px sans-serif';
+         ctx.font          = 'bold '+ fontSize +'px sans-serif';
          ctx.textAlign     = 'center';
          self.dim.location = ctx.measureText(str);
 
-         // Clear the textual area
+         /* Clear the textual area
          ctx.clearRect(0, 0, self.dim.year.width, fontSize + 2);
+         // */
 
          /* Highlight the drawing area
          ctx.fillStyle = 'rgba(255,255,255,0.5)';
@@ -346,6 +345,7 @@ $.ContextualClock.prototype = {
         var self    = this;
         var opts    = self.options;
         var ctx     = opts.ctx;
+        var width   = fontSize * 5;
 
         ctx.save(); // {
          // Render the time
@@ -360,15 +360,14 @@ $.ContextualClock.prototype = {
                  +      ':'+ self.padString(now.getMinutes());
 
          ctx.font      = 'bold '+ fontSize +'px sans-serif';
-         ctx.textAlign = 'right';
          self.dim.time = ctx.measureText(str);
 
          /* Clear the textual area (slightly offset so we don't clear the year)
           * AND clear the am/pm area
-          */
          ctx.clearRect(15, -apFont,
                        self.dim.time.width + (apFont*2),
                        fontSize + 10);
+          */
 
          /* Highlight the drawing area
          ctx.fillStyle = 'rgba(255,255,255,0.5)';
@@ -378,17 +377,17 @@ $.ContextualClock.prototype = {
          // */
 
          ctx.fillStyle = 'rgba(255,255,255,0.8)';
-         ctx.fillText( str, self.dim.time.width, (fontSize / 2) );
+         ctx.textAlign = 'right';
+         ctx.fillText( str, self.dim.year.width + 35, (fontSize * .75) );
 
          ctx.font      = 'bold '+ apFont +'px sans-serif';
-         ctx.textAlign = 'left';
          ctx.fillStyle = 'rgba(255,255,255,0.5)';
 
          self.dim.ap   = ctx.measureText(ap);
 
          ctx.fillText( ap,
-                       self.dim.time.width - 3,
-                       (fontSize / 2) + (apFont / 2));
+                       self.dim.year.width + 40,
+                       (fontSize * .75) + (apFont * .75) + 2);
                         /*
                        self.dim.time.width + 2,
                        fontSize - (apFont / 2));
@@ -413,46 +412,110 @@ $.ContextualClock.prototype = {
         var x       = 5;
         var yFont   = 42;
         var lFont   = 11;
-        var tFont   = 48;
+        var tFont   = 52;
+        var scale   = 1.0;
 
         // Initialize the dimensions object
         self.dim = {};
 
-        // Render the contextual date
-        ctx.globalAlpha = 0.9;
-        ctx.save(); // {
-         ctx.translate(20, 2);
-         this.date.render( now );
-        ctx.restore();  // }
-
-        // Render the contextual time
-        ctx.save(); // {
-         ctx.translate( -(tOpts.radius * tOpts.scale), 0);
-         this.time.render( now );
-        ctx.restore();  // }
-
-        ctx.globalAlpha = 1.0;
+        /********************************************************************
+         * Textual renderings
+         *
+         */
+        // clear the entire canvas
+        ctx.clearRect(0, 0, width, height);
 
         // Render the textual date
         ctx.save(); // {
-         ctx.translate(5, (dOpts.height * dOpts.scale) );
+         ctx.globalAlpha = 1.0;
+         ctx.translate( 0, (tFont / 2) - (yFont / 2) + 4);
 
          self.renderDate( now, yFont );
         ctx.restore();  // }
 
         // Render the textual location
         ctx.save();    // {
-         ctx.translate(0, (dOpts.height * dOpts.scale) + (yFont * 1.5));
+         ctx.globalAlpha = 1.0;
+         ctx.translate(0, height - lFont);
 
          self.renderLocation( lFont );
         ctx.restore(); // }
 
         // Render the textual time
         ctx.save(); // {
-         ctx.translate(self.dim.year.width - 10,
-                       (tOpts.height * tOpts.scale) + 7);
+         ctx.globalAlpha = 1.0;
+         ctx.translate(self.dim.year.width - 2, 0); //(tFont * .25));
 
          self.renderTime( now, tFont );
+
+        ctx.restore();  // }
+
+        // Render a divider / minute progress / seconds counter
+        ctx.save(); // {
+         ctx.lineCap     = 'round';
+
+         ctx.translate( 0, (tFont / 2) - (yFont / 2) + yFont + 10);
+         //ctx.translate(0, height / 2);
+
+         ctx.beginPath();
+          ctx.strokeStyle = 'rgba(0,153,255,0.35)';
+          ctx.lineWidth   = 4;
+          ctx.moveTo( 0, 0 );
+          ctx.lineTo( width, 0 );
+          ctx.stroke();
+
+         // Hour Progress
+         var mn = (now.getSeconds() *  1000) +  // seconds in ms
+                  (now.getMilliseconds());
+         var hr = (now.getMinutes() * 60000) +  // minutes in ms
+                  mn;
+
+         ctx.beginPath();
+          ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+          ctx.lineWidth   = 2;
+          ctx.moveTo( 0, 0 );
+          ctx.lineTo( (width * (hr / 3600000)), 0);
+          ctx.stroke();
+
+         // Minute Progress
+         ctx.beginPath();
+          ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+          ctx.lineWidth   = 4;
+          ctx.moveTo( 0, 2 );
+          ctx.lineTo( (width * (mn / 60000)), 2 );
+          ctx.stroke();
+
+
+        ctx.restore();  // }
+
+        /********************************************************************
+         * Contextual renderings
+         *
+         */
+
+        // Render the contextual date
+        // /*
+        ctx.save(); // {
+         scale  = 0.5;
+
+         ctx.translate((self.dim.year.width / 2) - ((dOpts.width / 2) * scale),
+                       yFont + (tFont / 4) + 8);
+         ctx.scale(scale, scale);
+
+         //ctx.globalAlpha = 0.9;
+         this.date.render( now );
+        ctx.restore();  // }
+
+        // Render the contextual time
+        ctx.save(); // {
+         scale  = 0.6;
+
+         ctx.globalAlpha = 0.9;
+         ctx.translate(width  - (tOpts.width  * scale),
+                       height - (tOpts.height * scale));
+         ctx.scale(scale, scale);
+
+         this.time.render( now );
         ctx.restore();  // }
 
         return this;
