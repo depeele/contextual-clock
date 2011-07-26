@@ -34,9 +34,11 @@ $.ContextualTime.prototype = {
         height:         150,
 
         centerX:        75,
-        centerY:        70,
+        centerY:        75,
 
         radius:         45,
+        
+        labelSize:      17,         // The font size (in pixels) of the label
   
         sun:    {
             src:        'images/sun.png',
@@ -228,7 +230,7 @@ $.ContextualTime.prototype = {
           ctx.fillStyle   = 'rgba(255,255,255,0.5)';
           //ctx.fillStyle = 'rgba(0,153,255,0.8)';
           ctx.textAlign = 'center';
-          ctx.font = 'bold 17px sans-serif';
+          ctx.font = 'bold '+ opts.labelSize +'px sans-serif';
 
           for (idex = 0; idex < 24; idex += 3)
           {
@@ -262,9 +264,11 @@ $.ContextualTime.prototype = {
                 }
               }
 
+              var labelOffset = opts.radius + opts.labelSize + 2;
               ctx.fillText(str,
-                           (opts.radius + 20) * Math.cos(  aTime ),
-                           (opts.radius + 20) * Math.sin( -aTime ) + 10);
+                           labelOffset * Math.cos(  aTime ),
+                           labelOffset * Math.sin( -aTime ) +
+                                (opts.labelSize / 4));
           }
          ctx.restore();    // }
 
