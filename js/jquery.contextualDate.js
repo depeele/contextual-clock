@@ -139,7 +139,10 @@ $.ContextualDate.prototype = {
         var monthLen    = (($.inArray(month, [0,2,4,6,7,9,11]) >= 0)
                             ? 31
                             : (month === 1
-                                ? 28
+                                ? ( ((year % 4 == 0) && (year % 100 != 0)) ||
+                                    (year % 400 == 0)
+                                        ? 29
+                                        : 28)
                                 : 30));
         var ctx         = opts.ctx;
 
