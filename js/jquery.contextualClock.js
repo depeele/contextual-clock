@@ -454,7 +454,7 @@ $.ContextualClock.prototype = {
         ctx.save(); // {
          ctx.lineCap     = 'round';
 
-         ctx.translate( 0, (tFont / 2) - (yFont / 2) + yFont + 10);
+         ctx.translate( 0, (tFont / 2) - (yFont / 2) + yFont + 16);
          //ctx.translate(0, height / 2);
 
          ctx.beginPath();
