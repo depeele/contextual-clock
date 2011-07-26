@@ -436,7 +436,7 @@ $.ContextualClock.prototype = {
         // Render the textual location
         ctx.save();    // {
          ctx.globalAlpha = 1.0;
-         ctx.translate(0, height - lFont);
+         ctx.translate(0, height - (lFont * 1.2));
 
          self.renderLocation( lFont );
         ctx.restore(); // }
@@ -455,7 +455,6 @@ $.ContextualClock.prototype = {
          ctx.lineCap     = 'round';
 
          ctx.translate( 0, (tFont / 2) - (yFont / 2) + yFont + 16);
-         //ctx.translate(0, height / 2);
 
          ctx.beginPath();
           ctx.strokeStyle = 'rgba(0,153,255,0.35)';
