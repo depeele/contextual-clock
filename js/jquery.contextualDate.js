@@ -32,6 +32,8 @@ $.ContextualDate.prototype = {
 
         centerX:        70,
         centerY:        70,
+
+        labelSize:      17,         // The font size (in pixels) of the labels
   
         sun:    {
             src:        'images/sun.png',
@@ -53,6 +55,14 @@ $.ContextualDate.prototype = {
             offset:     15,
             size:       7
         },
+
+        // The month names to be used when labeling.
+        months: [
+            'jan', 'feb', 'mar',
+            'apr', 'may', 'jun',
+            'jul', 'aug', 'sep',
+            'oct', 'nov', 'dec'
+        ],
 
         /* If non-null, the number of milliseconds to use for an interval
          * timer.  If this is null, the caller is expected to invoke
@@ -122,6 +132,16 @@ $.ContextualDate.prototype = {
         return this;
     },
 
+    /** @brief  Convert a floating point month value (0.00 .. 11.99)
+     *          into radians (-PI/4 .. +3*PI/4)
+     *  @param  month   The floating point month value.
+     *
+     *  @return The equivalent radian value.
+     */
+    m2rad: function( month ) {
+        return -Math.PI / 2 + (month / 12.0) * PI2;
+    },
+
     /** @brief given a Date instance, render this MonthDate clock
      *  @param  now     The Date instance to render.
      *
@@ -184,7 +204,7 @@ $.ContextualDate.prototype = {
                       ((PI2 / (   24 * nDays) ) * hour)  + // hours   / year
                       ((PI2 / ( 1440 * nDays) ) * min)   + // minutes / year
                       ((PI2 / (86400 * nDays) ) * sec)   - // seconds / year
-                      (Math.PI / 3) // Back it up to the clock-1 position
+                      (Math.PI / 2) // Back jan up to the clock-12 position
           );
           ctx.translate(opts.earth.offset, 0);
        
@@ -216,6 +236,30 @@ $.ContextualDate.prototype = {
           ctx.restore();
          ctx.restore();
         
+         // Month labels
+         ctx.save();   // {
+          ctx.fillStyle   = 'rgba(255,255,255,0.5)';
+          //ctx.fillStyle = 'rgba(0,153,255,0.8)';
+          ctx.textAlign = 'center';
+          ctx.font = 'bold '+ opts.labelSize +'px sans-serif';
+
+          for (idex = 0; idex < 12; idex += 3)
+          {
+              var aMonth    = this.m2rad(idex);
+              var str       = opts.months[idex];
+              var xOffset   = opts.earth.offset + opts.labelSize + 4;
+              var yOffset   = xOffset;
+              if ((idex < 4) || (idex > 8))
+              {
+                  yOffset -= opts.labelSize - (opts.labelSize / 4);
+              }
+
+              ctx.fillText(str,
+                           xOffset * Math.cos(  aMonth ),
+                           yOffset * Math.sin(  aMonth ) );
+          }
+         ctx.restore();    // }
+
          // Earth orbit
          ctx.beginPath();
          ctx.arc(0, 0, opts.earth.offset, 0, Math.PI*2, false);

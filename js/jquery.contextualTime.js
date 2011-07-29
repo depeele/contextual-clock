@@ -38,7 +38,7 @@ $.ContextualTime.prototype = {
 
         radius:         45,
         
-        labelSize:      17,         // The font size (in pixels) of the label
+        labelSize:      17,         // The font size (in pixels) of the labels
   
         sun:    {
             src:        'images/sun.png',

@@ -498,7 +498,7 @@ $.ContextualClock.prototype = {
          scale  = 0.5;
 
          ctx.translate((self.dim.year.width / 2) - ((dOpts.width / 2) * scale),
-                       yFont + (tFont / 4) + 8);
+                       yFont + (tFont / 4) + 16);
          ctx.scale(scale, scale);
 
          //ctx.globalAlpha = 0.9;
