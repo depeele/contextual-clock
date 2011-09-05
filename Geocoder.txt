@@ -1,0 +1,25 @@
+Returned from Google Geocoder
+    address_components[]
+        long_name
+        short_name
+        types[]
+            street_number                          (e.g.          '7270')
+            route                                  (e.g.          'Springfield Ave')
+            locality, political                    (e.g. City,    'Sykesville')
+            sublocality, political                 (e.g.          'Gaither')
+            administrative_area_level_3, political (e.g. District,'5, Freedom')
+            administrative_area_level_2, political (e.g. County,  'Carroll')
+            administrative_area_level_1, political (e.g. State,   'Maryland')
+            country                                (e.g.          'United States')
+            postal_code                            (e.g.          '21784')
+    formatted_address
+    geometry{}
+    types[]
+        street_address                          (e.g. '7270 Springfield Ave,
+                                                       Sykesville, MD 21784, USA')
+        locality, political                     (e.g. 'Sykesville, MD 21784, USA')
+        administrative_area_level_3, political  (e.g. '5, Freedom, MD, USA')
+        administrative_area_level_2, political  (e.g. 'Carroll, Maryland, USA')
+        administrative_area_level_1, political  (e.g. 'Maryland, USA')
+        postal_code                             (e.g. 'Sykesville, MD 21784, USA')
+    
