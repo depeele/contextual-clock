@@ -59,6 +59,9 @@ $.ContextualClock.prototype = {
     init: function(options) {
         this.options = $.extend(true, {}, this.options, options);
         var opts     = this.options;
+        
+        this.$info   = $('#info');
+
 
         if (opts.ctx === null)
         {
@@ -186,6 +189,7 @@ $.ContextualClock.prototype = {
     setLocation: function( location ) {
         var self    = this;
         var opts    = self.options;
+        var $info   = self.$info.find('.Geolocation');
 
         opts.location = location;
 
@@ -197,9 +201,23 @@ $.ContextualClock.prototype = {
          *      'locality'                      - city
          *      'administrative_area_level_1'   - state
          */
+        $info.empty();
+        opts.locationStr = '';
         $.each(opts.location, function() {
             var addr       = this;
             var addrAr     = [];
+            var $div;
+            
+            $div = $('<div>'+ addr.formatted_address +'</div>')
+                        .addClass('address');
+            $info.append($div);
+            $.each(addr.types, function(idex) {
+                $div = $('<div>type #'+ idex +':'+ this +'</div>')
+                            .addClass('type');
+
+                $info.append($div);
+            });
+
             if (addr.types[0] !== 'locality') { return; }
 
             $.each(addr.address_components, function() {
@@ -215,10 +233,10 @@ $.ContextualClock.prototype = {
                 }
             });
 
-            if (addrAr.length > 0)
+            if ((opts.locationStr.length === 0) && (addrAr.length > 0))
             {
                 opts.locationStr = addrAr.join(', ');
-                return false;
+                //return false;
             }
         });
     },
