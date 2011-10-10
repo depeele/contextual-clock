@@ -195,7 +195,8 @@ $.ContextualClock.prototype = {
 
         /* Look through the incoming location data for those that have
          * a type of:
-         *      'locality'  - city/state
+         *      'locality'
+         *   or 'street_address'
          *
          * From this, pull the address components:
          *      'locality'                      - city
@@ -203,24 +204,35 @@ $.ContextualClock.prototype = {
          */
         $info.empty();
         opts.locationStr = '';
+        var choices = [];
+        var pref    = 0;
         $.each(opts.location, function() {
             var addr       = this;
-            var addrAr     = [];
             var $div;
             
             $div = $('<div>'+ addr.formatted_address +'</div>')
                         .addClass('address');
             $info.append($div);
             $.each(addr.types, function(idex) {
+                var type = this.toString();
+                if ((type === 'locality') ||
+                    (type === 'street_address'))
+                {
+                    if (type === 'locality') { pref = choices.length; }
+                    choices.push(addr);
+                }
+
                 $div = $('<div>type #'+ idex +':'+ this +'</div>')
                             .addClass('type');
 
                 $info.append($div);
             });
+        });
 
-            if (addr.types[0] !== 'locality') { return; }
-
-            $.each(addr.address_components, function() {
+        if (choices.length > 0)
+        {
+            var addrAr     = [];
+            $.each(choices[pref].address_components, function() {
                 switch (this.types[0])
                 {
                 case 'locality':
@@ -233,12 +245,11 @@ $.ContextualClock.prototype = {
                 }
             });
 
-            if ((opts.locationStr.length === 0) && (addrAr.length > 0))
+            if (addrAr.length > 0)
             {
                 opts.locationStr = addrAr.join(', ');
-                //return false;
             }
-        });
+        }
     },
 
     /** @brief  Left pad the provided string to the specified number of
