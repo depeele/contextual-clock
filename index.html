@@ -13,60 +13,14 @@
     <script src='js/jquery.contextualTime.js'></script>
     <script src='js/jquery.contextualClock.js'></script>
     <script src='js/SunriseSunset.js'></script>
-    <script>
-(function($) {
-    var geo;
-
-    /** @brief  When our location has been successfully established.
-     *  @param  position    Our location.
-     */
-    function geoSuccess(position)
-    {
-        var clock   = $('#canvas').data('contextualClock');
-
-        clock.setCoords(position.coords.latitude,
-                        position.coords.longitude);
-
-        $('#status').addClass('success')
-                    .html( clock.geoStr() );
-                    
-        // http://maps.googleapis.com/maps/api/geocode/json?latlng=39.40,-76.94&sensor=true
-    }
-
-    /** @brief  When our location has been successfully established.
-     *  @param  position    Our location.
-     */
-    function geoError(msg)
-    {
-        $('#status').addClass('error')
-                    .html( ($.type(msg) === 'string' ? msg : 'failed') );
-    }
-
-    $(document).ready(function() {
-        if (navigator.geolocation)
-        {
-            navigator.geolocation.getCurrentPosition(geoSuccess, geoError);
-        }
-        else
-        {
-            geoError('not supported');
-        }
-
-        //$('#canvas').contextualClock({interval:10, test:true});
-        $('#canvas').contextualClock({interval:500});
-        //$('#canvas').contextualClock({interval:2});
-    });
-}(jQuery));
-
-    </script>
+    <script src='main.js'></script>
   </head>
   <body>
    <section id="wrapper">
-    <header><h1>Contextual Clock</h1></header>
-    <meta name="viewport" content="width=620" />
+    <!-- header><h1>Contextual Clock</h1></header -->
 
     <article>
-      <p>Finding your location: <span id="status">checking...</span></p>
+      <!-- p>Finding your location: <span id="status">checking...</span></p -->
       <canvas id='canvas'></canvas>
       <!-- div id="info">
        <div class="Date"></div>
@@ -76,5 +30,6 @@
       </div>
     </article>
    </section>
+   <iframe id='geocode' src="geocode.html" style="display:none;"></iframe>
   </body>
 </html>

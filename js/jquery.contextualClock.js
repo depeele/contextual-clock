@@ -65,14 +65,11 @@ $.ContextualClock.prototype = {
         this.$info   = $('#info');
 
 
-        if (opts.ctx === null)
-        {
-            if (opts.canvas.jquery)
-            {
+        if (opts.ctx === null) {
+            if (opts.canvas.jquery) {
                 opts.ctx = opts.canvas[0].getContext('2d');
-            }
-            else
-            {
+
+            } else {
                 opts.ctx = opts.canvas.getContext('2d');
             }
         }
@@ -92,12 +89,10 @@ $.ContextualClock.prototype = {
         this.$time  = opts.canvas.contextualTime();
         this.time   = opts.canvas.data('contextualTime');
 
-        if (opts.interval > 0)
-        {
+        if (opts.interval > 0) {
             var self    = this;
             var now;
-            if (opts.test === true)
-            {
+            if (opts.test === true) {
                 now = new Date();
                 now.setDate(1);
                 now.setMonth(0);
@@ -109,15 +104,13 @@ $.ContextualClock.prototype = {
             //self.render( new Date() );
             // /*
             setInterval(function() {
-                if (opts.test !== true)
-                {
+                if (opts.test !== true) {
                     now = new Date();
                 }
 
                 self.render( now );
 
-                if (opts.test === true)
-                {
+                if (opts.test === true) {
                     now.setDate( now.getDate() + 1 );
                     //now.setHours( now.getHours() + 1 );
                     now.setMinutes( now.getMinutes() + 5 );
@@ -127,8 +120,7 @@ $.ContextualClock.prototype = {
             // */
         }
 
-        if (opts.latitude !== null)
-        {
+        if (opts.latitude !== null) {
             this.setCoords(opts.latitude, opts.longitude);
         }
 
@@ -153,9 +145,35 @@ $.ContextualClock.prototype = {
 
         this.time.setCoords( latitude, longitude );
 
-        if (opts.location === null)
-        {
-            window._googleMaps_loaded = function() {
+        if (opts.location === null) {
+
+            if (typeof geocode === 'function') {
+                /* The geocode() promise-based proxy is defined in main.js if
+                 * we are a chrome app and need to used a sandboxed version of
+                 * geocoding.
+                 */
+                geocode( latitude, longitude ).then(
+                    function success(data) {
+                        self.setLocation( data.results );
+                    },
+                    function failure(data) {
+                        console.warn("geocode.failure( %s, %s ): %s",
+                                     latitude, longitude,
+                                     JSON.stringify(data));
+                    }
+                );
+
+                return;
+            }
+
+            /**************************************************************
+             * ASSUME we are in a normal browser and can load and use
+             * external scripts.
+             */
+            $.getScript('https://maps.googleapis.com/maps/api/js'
+                                    + '?sensor=false'
+                                    + '&callback=_googleMaps_loaded',
+                       function( data, textStatus, jqxhr ) {
                 opts.geocoder = new google.maps.Geocoder();
                 opts.latlng   = new google.maps.LatLng(latitude, longitude);
 
@@ -169,15 +187,16 @@ $.ContextualClock.prototype = {
                                 }
                                 self.setLocation(results);
                     });
-            };
+            });
 
-            // Load the google maps API
+            /*
             $('<script />')
                 .attr('type','text/javascript')
                 .attr('src', 'https://maps.googleapis.com/maps/api/js'
                                     + '?sensor=false'
                                     + '&callback=_googleMaps_loaded')
                 .appendTo('body');
+            // */
         }
 
 
