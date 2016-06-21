@@ -61,6 +61,9 @@ $.ContextualClock.prototype = {
     init: function(options) {
         this.options = $.extend(true, {}, this.options, options);
         var opts     = this.options;
+        
+        this.$info   = $('#info');
+
 
         if (opts.ctx === null)
         {
@@ -188,23 +191,50 @@ $.ContextualClock.prototype = {
     setLocation: function( location ) {
         var self    = this;
         var opts    = self.options;
+        var $info   = self.$info.find('.Geolocation');
 
         opts.location = location;
 
         /* Look through the incoming location data for those that have
          * a type of:
-         *      'locality'  - city/state
+         *      'locality'
+         *   or 'street_address'
          *
          * From this, pull the address components:
          *      'locality'                      - city
          *      'administrative_area_level_1'   - state
          */
+        $info.empty();
+        opts.locationStr = '';
+        var choices = [];
+        var pref    = 0;
         $.each(opts.location, function() {
             var addr       = this;
-            var addrAr     = [];
-            if (addr.types[0] !== 'locality') { return; }
+            var $div;
+            
+            $div = $('<div>'+ addr.formatted_address +'</div>')
+                        .addClass('address');
+            $info.append($div);
+            $.each(addr.types, function(idex) {
+                var type = this.toString();
+                if ((type === 'locality') ||
+                    (type === 'street_address'))
+                {
+                    if (type === 'locality') { pref = choices.length; }
+                    choices.push(addr);
+                }
 
-            $.each(addr.address_components, function() {
+                $div = $('<div>type #'+ idex +':'+ this +'</div>')
+                            .addClass('type');
+
+                $info.append($div);
+            });
+        });
+
+        if (choices.length > 0)
+        {
+            var addrAr     = [];
+            $.each(choices[pref].address_components, function() {
                 switch (this.types[0])
                 {
                 case 'locality':
@@ -220,9 +250,8 @@ $.ContextualClock.prototype = {
             if (addrAr.length > 0)
             {
                 opts.locationStr = addrAr.join(', ');
-                return false;
             }
-        });
+        }
     },
 
     /** @brief  Left pad the provided string to the specified number of

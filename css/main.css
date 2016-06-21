@@ -21,3 +21,12 @@ body {
   top:      0;
   left:     10em;
 }
+#info .Geolocation {
+  position: absolute;
+  top:      8em;
+}
+.Geolocation .address {
+}
+.Geolocation .type {
+  padding:  0 1em;
+}
