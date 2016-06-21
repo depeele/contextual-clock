@@ -22,8 +22,10 @@ $.ContextualClock = function(options) {
 
 $.ContextualClock.prototype = {
     options: {
-        latitude:       null,   //38.9278,
-        longitude:      null,   //-77.0136,
+        // Baltimore, Inner Harbor
+        latitude:       39.286358,
+        longitude:      -76.608426,
+
         location:       null,
         locationStr:    null,
         /*
@@ -386,7 +388,7 @@ $.ContextualClock.prototype = {
          self.dim.ap   = ctx.measureText(ap);
 
          ctx.fillText( ap,
-                       self.dim.year.width + 40,
+                       self.dim.year.width + 38,
                        (fontSize * 0.75) + (apFont * 0.75) + 2);
                         /*
                        self.dim.time.width + 2,
