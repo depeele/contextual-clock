@@ -3,6 +3,10 @@
     "description": "Show the date and time contextually. Present the month as the earth around the sun and day as the moon around the earth. Show sunrise and sunset for your current location along with the sun relative to sunrise/sunset.",
     "version": "0.1",
     "manifest_version": 2,
+    "icons": {
+        "16":   "images/icon-16x16.png",
+        "128":  "images/icon-128x128.png"
+    },
     "permissions": [
         "geolocation",
         "https://maps.googleapis.com/"
