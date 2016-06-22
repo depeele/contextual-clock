@@ -28,14 +28,6 @@ $.ContextualClock.prototype = {
 
         location:       null,
         locationStr:    null,
-        /*
-        location:       [
-            {},
-            {"address_components":[{"long_name":"Children's Hospital","short_name":"Children's Hospital","types":["point_of_interest","establishment"]},{"long_name":"111","short_name":"111","types":["street_number"]},{"long_name":"Michigan Ave NW","short_name":"Michigan Ave NW","types":["route"]},{"long_name":"Washington D.C.","short_name":"Washington D.C.","types":["locality","political"]},{"long_name":"District of Columbia","short_name":"DC","types":["administrative_area_level_1","political"]},{"long_name":"United States","short_name":"US","types":["country","political"]},{"long_name":"20010","short_name":"20010","types":["postal_code"]}],"formatted_address":"Children's Hospital, 111 Michigan Ave NW, Washington D.C., DC 20010, USA","geometry":{"location":{"Ka":38.9276274,"La":-77.0141193},"location_type":"APPROXIMATE","viewport":{"pa":{"b":38.92447977931983,"d":38.93077502068017},"W":{"d":-77.01726692068019,"b":-77.01097167931982}}},"types":["point_of_interest","airport","airport","establishment"]},
-            {"address_components":[{"long_name":"Washington DC","short_name":"Washington DC","types":["locality","political"]},{"long_name":"Hanover","short_name":"Hanover","types":["administrative_area_level_3","political"]},{"long_name":"Anne Arundel","short_name":"Anne Arundel","types":["administrative_area_level_2","political"]},{"long_name":"Washington DC","short_name":"DC","types":["administrative_area_level_1","political"]},{"long_name":"United States","short_name":"US","types":["country","political"]}],"formatted_address":"Fort Meade, MD, USA","geometry":{"bounds":{"pa":{"b":39.088709,"d":39.1306079},"W":{"d":-76.77574600000003,"b":-76.71329100000003}},"location":{"Ka":39.1088867,"La":-76.74326450000001},"location_type":"APPROXIMATE","viewport":{"pa":{"b":39.088709,"d":39.1306079},"W":{"d":-76.77574600000003,"b":-76.71329100000003}}},"types":["locality","political"]},
-            {"address_components":[{"long_name":"Fort Meade","short_name":"Fort Meade","types":["locality","political"]},{"long_name":"Hanover","short_name":"Hanover","types":["administrative_area_level_3","political"]},{"long_name":"Anne Arundel","short_name":"Anne Arundel","types":["administrative_area_level_2","political"]},{"long_name":"Maryland","short_name":"MD","types":["administrative_area_level_1","political"]},{"long_name":"United States","short_name":"US","types":["country","political"]}],"formatted_address":"Fort Meade, MD, USA","geometry":{"bounds":{"pa":{"b":39.088709,"d":39.1306079},"W":{"d":-76.77574600000003,"b":-76.71329100000003}},"location":{"Ka":39.1088867,"La":-76.74326450000001},"location_type":"APPROXIMATE","viewport":{"pa":{"b":39.088709,"d":39.1306079},"W":{"d":-76.77574600000003,"b":-76.71329100000003}}},"types":["locality","political"]}
-        ],
-        // */
 
         ctx:            null,       // The 2d context of the target canvas
         canvas:         '#canvas',  // OR a DOM selector for the target canvas
@@ -169,7 +161,6 @@ $.ContextualClock.prototype = {
             /**************************************************************
              * ASSUME we are in a normal browser and can load and use
              * external scripts.
-             */
             $.getScript('https://maps.googleapis.com/maps/api/js'
                                     + '?sensor=false'
                                     + '&callback=_googleMaps_loaded',
@@ -188,6 +179,7 @@ $.ContextualClock.prototype = {
                                 self.setLocation(results);
                     });
             });
+            // */
 
             /*
             $('<script />')
