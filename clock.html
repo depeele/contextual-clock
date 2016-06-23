@@ -2,71 +2,174 @@
 <html>
  <head>
   <title>Clock</title>
+  <!-- style>
+    #canvas {
+        border: 1px solid #444;
+    }
+  </style -->
  </head>
+
  <body>
-  <canvas id='canvas'></canvas>
+  <canvas id='canvas' width="600" height="600"></canvas>
   <script>
 'use strict';
 
-const ctx       = document.getElementById('canvas').getContext('2d');
-const smooth    = true;
-var   frames    = 0;
-var   fps       = 0;
-var   startTick = null;
-var   time      = null;
+/**
+ *  A round-clock class.
+ *  @class  Clock
+ */
+class Clock {
+    /**
+     *  Class constructor
+     *  @constructor
+     *  @param  selector    The CSS selector for the canvas element to be used
+     *                      for presenting this clock {DOMElement};
+     */
+    constructor( selector ) {
+        const self  = this;
 
-function clock( ts ){
-    ts = ts || 0;
+        self.el       = document.getElementById( selector );
+        self.ctx      = self.el.getContext('2d');
+        self.smooth   = true;
+        self._frame   = 0;
+        self.fps      = 0;
+        self.progress = 0
+        self.base     = null;   // The absolute base time (in ms)
+        self.start    = null;   // Start of the current tick (ms)
+        self.elapsed  = null;   // Elapsed since `start` (ms)
+        self.time     = null;   /* Time for the current tick animation
+                                 *      start   tick start (Date)
+                                 *      end     target end (Date)
+                                 *      sec     ending seconds
+                                 *      min     ending minutes
+                                 *      hr      ending hours
+                                 */
 
-    if (startTick == null)    { startTick = ts; }
-    const elapsed     = ts - startTick;
-    let   progress    = elapsed / 1000;
-    let   rotation    = {
-            start:  0,
-            end:    0,
-          };
-
-    if (progress >= 1) {
-        progress  = 1;
-        fps       = frames;
+        self.baseSize = 300;
+        self.bounds   = {
+            width:  self.el.clientWidth,
+            height: self.el.clientHeight,
+        };
+        self.center   = {x: self.bounds.width/2, y: self.bounds.height/2 };
+        self.scale    = Math.min(self.bounds.width, self.bounds.height) /
+                            self.baseSize;
 
         /*
-        console.log("ts: %s, fps: %s, time: %s",
-                     ts, fps, (time ? time.now.toTimeString() : '-'));
+        console.log("center: %s, scale: %s",
+                    JSON.stringify( self.center ),
+                    JSON.stringify( self.scale ) );
         // */
 
-        frames    = 0;
-        startTick = null;
+        self._tick = self.tick.bind( self );
+
+        // Start the ticking
+        self.base = (new Date()).getTime();
+        self.tick();
     }
 
-    if (elapsed < 1) {
-        const now   = new Date();
-        const prev  = new Date( now.getTime() - 1000 );
-        time = {
-            now:    now,
-            sec:    prev.getSeconds(),
-            min:    prev.getMinutes(),
-            hr:     prev.getHours(),
-        };
-        if (time.hr >= 12)  { time.hr -= 12; }
+    /**
+     *  Perform animation.
+     *  @method tick
+     *  @param  [ts]    The animation timestamp (in milliseconds) {Number};
+     */
+    tick( ts ) {
+        const self  = this;
+
+        ts = ts || 0;
+
+        self.elapsed  = (self.start ? ts - self.start : 0);
+        self.progress = self.elapsed / 1000;
+
+        if (self.elapsed < 1 || self.progress >= 1) {
+            self.progress = 0;
+            self.fps      = self._frame;
+            self._frame   = 0;
+            self.start    = ts;
+
+            const startMs   = self.base + ts;
+            const start     = new Date( startMs );
+            // Round the end up to the next nearest second
+            const endMs     = Math.ceil( (startMs + 1000) / 1000 ) * 1000;
+            const end       = new Date( endMs );
+
+            self.time   = {
+                start:  start,
+                end:    end,
+                sec:    end.getSeconds(),
+                min:    end.getMinutes(),
+                hr:     end.getHours(),
+            };
+            if (self.time.hr >= 12) { self.time.hr -= 12; }
+
+            /*
+            console.log("progress: %s, ts: %s .. %s ( %s ), fps: %s, time: %s",
+                          self.progress,
+                          self.start, ts, self.elapsed,
+                          self.fps,
+                          JSON.stringify(self.time));
+            // */
+        }
+
+        self._frame++;
+
+        self.ctx.save(); // { context
+
+        /***********************************************************
+         * Translate, scale, and rotate to the clock center point.
+         *
+         */
+
+        /*
+        self.ctx.translate(75, 75);
+        self.ctx.scale(0.4, 0.4);
+        self.ctx.rotate(-Math.PI/2);
+        // */
+
+        self.ctx.translate( self.center.x, self.center.y );
+        self.ctx.scale( self.scale, self.scale );
+        self.ctx.rotate(-Math.PI/2);
+
+        /***********************************************************
+         * (Re)draw or clear the clock face.
+         *
+         */
+        if ( self.progress == 0 ) {
+            // Re-draw the face once / second
+            self.drawFace();
+        } else {
+            // Clear the center so we can re-draw the hands
+            self.clearFace();
+        }
+
+        /***********************************************************
+         * (Re)draw the hands.
+         *
+         */
+        self.drawHourHand( );
+        self.drawMinuteHand( );
+        self.drawSecondHand( );
+
+        self.ctx.restore(); // context }
+
+        requestAnimationFrame( self._tick );
     }
-    frames++;
 
-
-  ctx.save();
-    //ctx.clearRect(0,0,150,150);
-    ctx.translate(75, 75);
-    ctx.scale(0.4, 0.4);
-    ctx.rotate(-Math.PI/2);
-
-    /***********************************************************
-     * (Re)draw or clear the clock face.
+    /*************************************************************************
+     * All of the following draw methods assume the context has been
+     * translated, scaled, and rotated to the clock center point.
      *
      */
-    if ( progress == 0 ) {
-        // Re-draw the face once / second
 
-        // Outline
+    /**
+     *  Draw the clock face.
+     *  @method drawFace
+     */
+    drawFace() {
+        const self  = this;
+        const ctx   = self.ctx;
+
+        ctx.save(); // { context
+    
         ctx.lineWidth   = 14;
         ctx.fillStyle   = "white";
         ctx.strokeStyle = '#325FA2';
@@ -75,11 +178,10 @@ function clock( ts ){
         ctx.closePath();
         ctx.stroke();
         ctx.fill();
-
+    
         // Time marks
         ctx.fillStyle = "black";
-        ctx.save();
-          for (let idex = 0; idex < 60; idex++) {
+        for (let idex = 0; idex < 60; idex++) {
             if (idex % 5 === 0) {
                 // Hour mark
                 ctx.fillRect(122, -4, 20, 8);
@@ -88,93 +190,151 @@ function clock( ts ){
                 ctx.fillRect(132, -2, 8, 4);
             }
             ctx.rotate(Math.PI/30);
-          }
-        ctx.restore();
-
-    } else {
-        // Clear the center so we can re-draw the hands
+        }
+    
+        ctx.restore();  // context }
+    }
+    
+    /**
+     *  Clear the inside of the clock face without erasing the outline or time
+     *  marks.
+     *  @method clearFace
+     */
+    clearFace() {
+        const self  = this;
+        const ctx   = self.ctx;
+    
+        ctx.save(); // { context
+    
         ctx.fillStyle   = "white";
         ctx.beginPath();
           ctx.arc(0,0, 122, 0, Math.PI*2, true);
         ctx.closePath();
         ctx.fill();
+    
+        ctx.restore();  // context }
     }
-
-    /***********************************************************
-     * (Re)draw the hands.
-     *
+    
+    /**
+     *  Draw the hour hand.
+     *  @method drawHourHand
      */
-    ctx.lineCap     = "round";
-    ctx.fillStyle   = "black";
-    ctx.strokeStyle = "black";
+    drawHourHand( ) {
+        const self      = this;
+        const ctx       = self.ctx;
+        const rotation  = {start:0, now:0};
 
-    // Hour hand
-    ctx.save();
-      rotation.start = time.hr  * (Math.PI/6)
-                     + time.min * (Math.PI/360)
-                     + time.sec * (Math.PI/21600);
-      rotation.now   = rotation.start
-                     + (Math.PI/21600 * (smooth ? progress : 1));
-
-      ctx.rotate( rotation.now );
-      ctx.lineWidth = 14;
-      ctx.beginPath();
-      ctx.moveTo(-20,0);
-      ctx.lineTo(80,0);
-      ctx.stroke();
-    ctx.restore();
-
-    // Minute hand
-    ctx.save();
-      rotation.start = time.min * (Math.PI/30)
-                     + time.sec * (Math.PI/1800);
-      rotation.now   = rotation.start
-                     + (Math.PI/1800 * (smooth ? progress : 1));
-
-      ctx.rotate( rotation.now );
-      ctx.lineWidth = 10;
-      ctx.beginPath();
-      ctx.moveTo(-28,0);
-      ctx.lineTo(112,0);
-      ctx.stroke();
-    ctx.restore();
-  
-    // Second hand
-    ctx.save();
-      rotation.start = time.sec * (Math.PI/30);
-      rotation.now   = rotation.start
-                     + (Math.PI/30 * (smooth ? progress : 1));
-
-      ctx.rotate( rotation.now );
-
-      ctx.strokeStyle = "#D40000";
-      ctx.fillStyle   = "#D40000";
-      ctx.lineWidth   = 6;
-
-      ctx.beginPath();
-        ctx.moveTo(-30,0);
-        ctx.lineTo(83,0);
+        ctx.save(); // { context
+    
+        ctx.lineCap     = "round";
+        ctx.fillStyle   = "black";
+        ctx.strokeStyle = "black";
+    
+        rotation.start = self.time.hr  * (Math.PI/6)
+                       + self.time.min * (Math.PI/360)
+                       + self.time.sec * (Math.PI/21600);
+        rotation.now   = rotation.start
+                       + (Math.PI/21600 * (self.smooth ? self.progress : 1));
+    
+        ctx.rotate( rotation.now );
+        ctx.lineWidth = 14;
+        ctx.beginPath();
+        ctx.moveTo(-20,0);
+        ctx.lineTo(90,0);
         ctx.stroke();
+    
+        ctx.restore();  // context }
+    }
+    
+    /**
+     *  Draw the minute hand.
+     *  @method drawHourHand
+     */
+    drawMinuteHand() {
+        const self      = this;
+        const ctx       = self.ctx;
+        const rotation  = {start:0, now:0};
+    
+        ctx.save(); // { context
+    
+        ctx.lineCap     = "round";
+        ctx.fillStyle   = "black";
+        ctx.strokeStyle = "black";
+    
+        rotation.start = self.time.min * (Math.PI/30)
+                       + self.time.sec * (Math.PI/1800);
+        rotation.now   = rotation.start
+                       + (Math.PI/1800 * (self.smooth ? self.progress : 1));
+    
+        ctx.rotate( rotation.now );
+        ctx.lineWidth = 10;
+        ctx.beginPath();
+        ctx.moveTo(-28,0);
+        ctx.lineTo(112,0);
+        ctx.stroke();
+    
+        ctx.restore();  // context }
+    }
+    
+    /**
+     *  Draw the second hand.
+     *  @method drawHourHand
+     */
+    drawSecondHand() {
+        const self      = this;
+        const ctx       = self.ctx;
+        const rotation  = {start:0, now:0};
+    
+        ctx.save(); // { context
+    
+        ctx.lineCap     = "round";
+        ctx.fillStyle   = "black";
+        ctx.strokeStyle = "black";
+    
+        rotation.start = self.time.sec * (Math.PI/30);
+        rotation.now   = rotation.start
+                       + (Math.PI/30 * (self.smooth ? self.progress : 1));
+    
+        ctx.rotate( rotation.now );
+    
+        ctx.strokeStyle = "#D40000";
+        ctx.fillStyle   = "#D40000";
+        ctx.lineWidth   = 6;
+    
+        ctx.beginPath();
+          ctx.moveTo(-30,0);
+          ctx.lineTo(83,0);
+          ctx.stroke();
+    
+        ctx.beginPath();
+          ctx.arc(0,0,10,0,Math.PI*2,true);
+          ctx.fill();
+    
+        ctx.beginPath();
+          ctx.arc(95,0,10,0,Math.PI*2,true);
+          ctx.stroke();
 
-      ctx.beginPath();
-        ctx.arc(0,0,10,0,Math.PI*2,true);
+        ctx.beginPath();
+          ctx.moveTo(105,0);
+          ctx.lineTo(118,0);
+          ctx.stroke();
+    
+        /*
+        ctx.fillStyle = "#555";
+        ctx.arc(0,0,3,0,Math.PI*2,true);
+        ctx.fill();
+        // */
+
+        ctx.fillStyle = "#000";
+        ctx.moveTo(0,0);
+        ctx.arc(0,0,1,0,Math.PI*2,true);
         ctx.fill();
 
-      ctx.beginPath();
-        ctx.arc(95,0,10,0,Math.PI*2,true);
-        ctx.stroke();
-
-      ctx.fillStyle = "#555";
-      ctx.arc(0,0,3,0,Math.PI*2,true);
-      ctx.fill();
-    ctx.restore();
-
-  ctx.restore();
-
-  requestAnimationFrame( clock );
+        ctx.restore();  // context }
+    }
 }
 
-clock();
+var clock   = new Clock( 'canvas' );
   </script>
  </body>
 </html>
