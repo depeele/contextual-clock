@@ -6,106 +6,175 @@
  <body>
   <canvas id='canvas'></canvas>
   <script>
-function init(){
-  clock();
-  setInterval('clock()',1000);
-}
-function clock(){
-  var now = new Date();
-  var ctx = document.getElementById('canvas').getContext('2d');
-  ctx.save();
-  ctx.clearRect(0,0,150,150);
-  ctx.translate(75,75);
-  ctx.scale(0.4,0.4);
-  ctx.rotate(-Math.PI/2);
-  ctx.strokeStyle = "black";
-  ctx.fillStyle = "white";
-  ctx.lineWidth = 8;
-  ctx.lineCap = "round";
+'use strict';
 
-  // Hour marks
-  ctx.save();
-  ctx.beginPath();
-  for (i=0;i<12;i++){
-    ctx.rotate(Math.PI/6);
-    ctx.moveTo(100,0);
-    ctx.lineTo(120,0);
-  }
-  ctx.stroke();
-  ctx.restore();
+const ctx       = document.getElementById('canvas').getContext('2d');
+const smooth    = true;
+var   frames    = 0;
+var   fps       = 0;
+var   startTick = null;
+var   time      = null;
 
-  // Minute marks
-  ctx.save();
-  ctx.lineWidth = 5;
-  ctx.beginPath();
-  for (i=0;i<60;i++){
-    if (i%5!=0) {
-      ctx.moveTo(117,0);
-      ctx.lineTo(120,0);
+function clock( ts ){
+    ts = ts || 0;
+
+    if (startTick == null)    { startTick = ts; }
+    const elapsed     = ts - startTick;
+    let   progress    = elapsed / 1000;
+    let   rotation    = {
+            start:  0,
+            end:    0,
+          };
+
+    if (progress >= 1) {
+        progress  = 1;
+        fps       = frames;
+
+        /*
+        console.log("ts: %s, fps: %s, time: %s",
+                     ts, fps, (time ? time.now.toTimeString() : '-'));
+        // */
+
+        frames    = 0;
+        startTick = null;
     }
-    ctx.rotate(Math.PI/30);
-  }
-  ctx.stroke();
-  ctx.restore();
+
+    if (elapsed < 1) {
+        const now   = new Date();
+        const prev  = new Date( now.getTime() - 1000 );
+        time = {
+            now:    now,
+            sec:    prev.getSeconds(),
+            min:    prev.getMinutes(),
+            hr:     prev.getHours(),
+        };
+        if (time.hr >= 12)  { time.hr -= 12; }
+    }
+    frames++;
+
+
+  ctx.save();
+    //ctx.clearRect(0,0,150,150);
+    ctx.translate(75, 75);
+    ctx.scale(0.4, 0.4);
+    ctx.rotate(-Math.PI/2);
+
+    /***********************************************************
+     * (Re)draw or clear the clock face.
+     *
+     */
+    if ( progress == 0 ) {
+        // Re-draw the face once / second
+
+        // Outline
+        ctx.lineWidth   = 14;
+        ctx.fillStyle   = "white";
+        ctx.strokeStyle = '#325FA2';
+        ctx.beginPath();
+          ctx.arc(0,0, 142, 0, Math.PI*2, true);
+        ctx.closePath();
+        ctx.stroke();
+        ctx.fill();
+
+        // Time marks
+        ctx.fillStyle = "black";
+        ctx.save();
+          for (let idex = 0; idex < 60; idex++) {
+            if (idex % 5 === 0) {
+                // Hour mark
+                ctx.fillRect(122, -4, 20, 8);
+            } else {
+                // Minute mark
+                ctx.fillRect(132, -2, 8, 4);
+            }
+            ctx.rotate(Math.PI/30);
+          }
+        ctx.restore();
+
+    } else {
+        // Clear the center so we can re-draw the hands
+        ctx.fillStyle   = "white";
+        ctx.beginPath();
+          ctx.arc(0,0, 122, 0, Math.PI*2, true);
+        ctx.closePath();
+        ctx.fill();
+    }
+
+    /***********************************************************
+     * (Re)draw the hands.
+     *
+     */
+    ctx.lineCap     = "round";
+    ctx.fillStyle   = "black";
+    ctx.strokeStyle = "black";
+
+    // Hour hand
+    ctx.save();
+      rotation.start = time.hr  * (Math.PI/6)
+                     + time.min * (Math.PI/360)
+                     + time.sec * (Math.PI/21600);
+      rotation.now   = rotation.start
+                     + (Math.PI/21600 * (smooth ? progress : 1));
+
+      ctx.rotate( rotation.now );
+      ctx.lineWidth = 14;
+      ctx.beginPath();
+      ctx.moveTo(-20,0);
+      ctx.lineTo(80,0);
+      ctx.stroke();
+    ctx.restore();
+
+    // Minute hand
+    ctx.save();
+      rotation.start = time.min * (Math.PI/30)
+                     + time.sec * (Math.PI/1800);
+      rotation.now   = rotation.start
+                     + (Math.PI/1800 * (smooth ? progress : 1));
+
+      ctx.rotate( rotation.now );
+      ctx.lineWidth = 10;
+      ctx.beginPath();
+      ctx.moveTo(-28,0);
+      ctx.lineTo(112,0);
+      ctx.stroke();
+    ctx.restore();
   
-  var sec = now.getSeconds();
-  var min = now.getMinutes();
-  var hr  = now.getHours();
-  hr = hr>=12 ? hr-12 : hr;
+    // Second hand
+    ctx.save();
+      rotation.start = time.sec * (Math.PI/30);
+      rotation.now   = rotation.start
+                     + (Math.PI/30 * (smooth ? progress : 1));
 
-  ctx.fillStyle = "black";
+      ctx.rotate( rotation.now );
 
-  // write Hours
-  ctx.save();
-  ctx.rotate( hr*(Math.PI/6) + (Math.PI/360)*min + (Math.PI/21600)*sec )
-  ctx.lineWidth = 14;
-  ctx.beginPath();
-  ctx.moveTo(-20,0);
-  ctx.lineTo(80,0);
-  ctx.stroke();
-  ctx.restore();
+      ctx.strokeStyle = "#D40000";
+      ctx.fillStyle   = "#D40000";
+      ctx.lineWidth   = 6;
 
-  // write Minutes
-  ctx.save();
-  ctx.rotate( (Math.PI/30)*min + (Math.PI/1800)*sec )
-  ctx.lineWidth = 10;
-  ctx.beginPath();
-  ctx.moveTo(-28,0);
-  ctx.lineTo(112,0);
-  ctx.stroke();
-  ctx.restore();
-  
-  // Write seconds
-  ctx.save();
-  ctx.rotate(sec * Math.PI/30);
-  ctx.strokeStyle = "#D40000";
-  ctx.fillStyle = "#D40000";
-  ctx.lineWidth = 6;
-  ctx.beginPath();
-  ctx.moveTo(-30,0);
-  ctx.lineTo(83,0);
-  ctx.stroke();
-  ctx.beginPath();
-  ctx.arc(0,0,10,0,Math.PI*2,true);
-  ctx.fill();
-  ctx.beginPath();
-  ctx.arc(95,0,10,0,Math.PI*2,true);
-  ctx.stroke();
-  ctx.fillStyle = "#555";
-  ctx.arc(0,0,3,0,Math.PI*2,true);
-  ctx.fill();
-  ctx.restore();
+      ctx.beginPath();
+        ctx.moveTo(-30,0);
+        ctx.lineTo(83,0);
+        ctx.stroke();
 
-  ctx.beginPath();
-  ctx.lineWidth = 14;
-  ctx.strokeStyle = '#325FA2';
-  ctx.arc(0,0,142,0,Math.PI*2,true);
-  ctx.stroke();
+      ctx.beginPath();
+        ctx.arc(0,0,10,0,Math.PI*2,true);
+        ctx.fill();
+
+      ctx.beginPath();
+        ctx.arc(95,0,10,0,Math.PI*2,true);
+        ctx.stroke();
+
+      ctx.fillStyle = "#555";
+      ctx.arc(0,0,3,0,Math.PI*2,true);
+      ctx.fill();
+    ctx.restore();
 
   ctx.restore();
+
+  requestAnimationFrame( clock );
 }
 
-init();
+clock();
   </script>
  </body>
 </html>
